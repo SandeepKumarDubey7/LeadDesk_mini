@@ -101,7 +101,13 @@ function LeadTable({ leads, loading, error, page, totalPages, total, onPageChang
                       style={{ backgroundImage: 'none' }}
                     >
                       {STATUS_OPTIONS.map((status) => (
-                        <option key={status} value={status}>{status}</option>
+                        <option 
+                          key={status} 
+                          value={status}
+                          className="bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100"
+                        >
+                          {status}
+                        </option>
                       ))}
                     </select>
                   </td>
