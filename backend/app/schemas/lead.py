@@ -11,11 +11,12 @@ from enum import Enum
 
 
 class BudgetRange(str, Enum):
-    """Valid budget range options for lead form."""
+    """Preset budget range options for lead form."""
     UNDER_25K = "< ₹25k"
     RANGE_25K_50K = "₹25k - ₹50k"
     RANGE_50K_1L = "₹50k - ₹1L"
     ABOVE_1L = "₹1L+"
+    CUSTOM = "Custom"
 
 
 class LeadStatus(str, Enum):
@@ -39,10 +40,12 @@ class LeadCreate(BaseModel):
         description="Email address of the lead",
         examples=["sandeep@example.com"],
     )
-    budget: BudgetRange = Field(
+    budget: str = Field(
         ...,
-        description="Budget range selected by the lead",
-        examples=["₹25k - ₹50k"],
+        min_length=1,
+        max_length=100,
+        description="Budget range or custom budget entered by the lead",
+        examples=["₹25k - ₹50k", "₹75,000", "$1,000"],
     )
     message: str = Field(
         ...,
@@ -66,6 +69,15 @@ class LeadCreate(BaseModel):
     def normalize_email(cls, v: str) -> str:
         """Normalize email to lowercase."""
         return v.strip().lower()
+
+    @field_validator("budget")
+    @classmethod
+    def sanitize_budget(cls, v: str) -> str:
+        """Strip whitespace from budget."""
+        v = v.strip()
+        if not v:
+            raise ValueError("Budget cannot be empty")
+        return v
 
     @field_validator("message")
     @classmethod

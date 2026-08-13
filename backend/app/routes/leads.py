@@ -70,7 +70,7 @@ async def submit_lead(
     request: Request,
     name: str = Form(..., min_length=2, max_length=100),
     email: str = Form(...),
-    budget: BudgetRange = Form(...),
+    budget: str = Form(..., min_length=1, max_length=100),
     message: str = Form(..., min_length=10, max_length=1000),
     attachment: Optional[UploadFile] = File(None),
 ):
@@ -79,9 +79,10 @@ async def submit_lead(
     Validates input, checks for duplicate email, stores file in GridFS,
     and saves lead in MongoDB.
     """
-    # Normalize email
+    # Normalize inputs
     email = email.strip().lower()
     name = name.strip()
+    budget = budget.strip()
     message = message.strip()
 
     # Check for duplicate email
@@ -127,7 +128,7 @@ async def submit_lead(
     lead_data = {
         "name": name,
         "email": email,
-        "budget": budget.value,
+        "budget": budget,
         "message": message,
         "attachment_id": attachment_id,
         "attachment_filename": attachment_filename,

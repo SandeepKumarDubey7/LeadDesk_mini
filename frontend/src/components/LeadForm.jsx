@@ -13,6 +13,7 @@ const BUDGET_OPTIONS = [
   { value: '₹25k - ₹50k', label: '₹25k - ₹50k' },
   { value: '₹50k - ₹1L', label: '₹50k - ₹1L' },
   { value: '₹1L+', label: '₹1L+' },
+  { value: 'Other', label: 'Other (Custom)' },
 ];
 
 const ALLOWED_TYPES = [
@@ -38,15 +39,19 @@ function LeadForm() {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm({
     defaultValues: {
       name: '',
       email: '',
       budget: '',
+      customBudget: '',
       message: '',
     },
   });
+
+  const selectedBudget = watch('budget');
 
   const validateFile = (file) => {
     if (!file) return true;
@@ -125,7 +130,7 @@ function LeadForm() {
       const formData = new FormData();
       formData.append('name', data.name);
       formData.append('email', data.email);
-      formData.append('budget', data.budget);
+      formData.append('budget', data.budget === 'Other' ? data.customBudget : data.budget);
       formData.append('message', data.message);
 
       if (selectedFile) {
@@ -225,6 +230,29 @@ function LeadForm() {
           <p className="mt-1 text-sm text-danger">{errors.budget.message}</p>
         )}
       </div>
+
+      {/* Custom Budget (Visible only if 'Other' is selected) */}
+      {selectedBudget === 'Other' && (
+        <div>
+          <label htmlFor="lead-custom-budget" className="block text-sm font-medium text-text-primary dark:text-text-dark-primary mb-1.5">
+            Custom Budget <span className="text-danger">*</span>
+          </label>
+          <input
+            id="lead-custom-budget"
+            type="text"
+            placeholder="e.g. ₹2L - ₹3L or $5000"
+            className={`w-full px-4 py-3 rounded-xl border ${
+              errors.customBudget ? 'border-danger' : 'border-border dark:border-border-dark'
+            } bg-white dark:bg-gray-800 text-text-primary dark:text-text-dark-primary placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all`}
+            {...register('customBudget', {
+              required: selectedBudget === 'Other' ? 'Please specify your budget' : false,
+            })}
+          />
+          {errors.customBudget && (
+            <p className="mt-1 text-sm text-danger">{errors.customBudget.message}</p>
+          )}
+        </div>
+      )}
 
       {/* Message */}
       <div>
