@@ -1,6 +1,7 @@
 """
 Pydantic schemas for Lead data validation.
 Handles input validation, serialization, and response formatting.
+Includes note and activity timeline schemas.
 """
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
@@ -74,12 +75,39 @@ class LeadCreate(BaseModel):
 
 
 class LeadStatusUpdate(BaseModel):
-    """Schema for updating a lead's status."""
+    """Schema for updating lead status."""
     status: LeadStatus = Field(
         ...,
         description="New status for the lead",
         examples=["Contacted"],
     )
+
+
+class NoteCreate(BaseModel):
+    """Schema for adding a note to a lead."""
+    text: str = Field(
+        ...,
+        min_length=1,
+        max_length=2000,
+        description="Note text content",
+        examples=["Followed up via email. Client is interested."],
+    )
+
+
+class NoteResponse(BaseModel):
+    """Schema for a lead note in API responses."""
+    id: str
+    text: str
+    author: str
+    created_at: str
+
+
+class ActivityEntry(BaseModel):
+    """Schema for an activity timeline entry."""
+    action: str
+    detail: str
+    timestamp: str
+    actor: str
 
 
 class LeadResponse(BaseModel):
@@ -91,6 +119,10 @@ class LeadResponse(BaseModel):
     message: str
     status: str
     created_at: str
+    attachment_id: Optional[str] = None
+    attachment_filename: Optional[str] = None
+    notes: Optional[list[NoteResponse]] = []
+    activity_timeline: Optional[list[ActivityEntry]] = []
 
     model_config = {"populate_by_name": True}
 

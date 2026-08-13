@@ -25,7 +25,7 @@ router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 async def login(request: LoginRequest):
     """
     Authenticate admin user with email and password.
-    Returns JWT access token on success.
+    Returns JWT access token on success, including user role.
     """
     # Find user by email
     user = get_user_by_email(request.email)
@@ -42,12 +42,16 @@ async def login(request: LoginRequest):
             detail="Invalid email or password",
         )
 
-    # Generate JWT token
-    token_data = create_access_token(data={"sub": user["email"]})
+    # Get user role (default to admin for backward compat)
+    user_role = user.get("role", "admin")
+
+    # Generate JWT token with role
+    token_data = create_access_token(data={"sub": user["email"], "role": user_role})
 
     return LoginResponse(
         access_token=token_data["access_token"],
         token_type=token_data["token_type"],
         expires_in=token_data["expires_in"],
         email=user["email"],
+        role=user_role,
     )

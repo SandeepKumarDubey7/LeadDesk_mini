@@ -1,25 +1,32 @@
 """
 LeadDesk Mini — FastAPI Application Entry Point.
-Configures CORS, mounts all route modules, and provides health check.
+Configures CORS, rate limiting, mounts all route modules, and provides health check.
 """
 
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 from dotenv import load_dotenv
 
-from app.routes import auth, leads, dashboard
+from app.routes import auth, leads, dashboard, export, admin, analytics
+from app.middleware.rate_limiter import limiter
 
 load_dotenv()
 
 # --- App Configuration ---
 app = FastAPI(
     title="LeadDesk Mini API",
-    description="Backend API for LeadDesk Mini — Lead Capture & Admin Dashboard. Built for Digital Heroes Internship.",
-    version="1.0.0",
+    description="Backend API for LeadDesk Mini — Lead Capture & Admin Dashboard. Built for GALLANTT ISPAT LIMITED.",
+    version="2.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
 )
+
+# --- Rate Limiting ---
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # --- CORS Middleware ---
 cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
@@ -36,6 +43,9 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(leads.router)
 app.include_router(dashboard.router)
+app.include_router(export.router)
+app.include_router(admin.router)
+app.include_router(analytics.router)
 
 
 # --- Health Check ---
@@ -50,7 +60,7 @@ async def health_check():
     return {
         "status": "healthy",
         "app": "LeadDesk Mini API",
-        "version": "1.0.0",
+        "version": "2.0.0",
         "docs": "/docs",
     }
 

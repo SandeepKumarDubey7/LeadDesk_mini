@@ -149,9 +149,9 @@ function LoginPage() {
 
         <p className="text-center text-xs text-text-secondary dark:text-text-dark-secondary mt-6">
           Built for{' '}
-          <a href="https://digitalheroesco.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-            Digital Heroes Training Task
-          </a>
+          <span className="text-primary font-medium">
+            GALLANTT ISPAT LIMITED
+          </span>
         </p>
       </div>
     </div>

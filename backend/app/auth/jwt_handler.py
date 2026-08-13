@@ -1,6 +1,7 @@
 """
 JWT token handler for LeadDesk Mini.
 Creates and verifies JSON Web Tokens for admin authentication.
+Includes role in token payload for role-based access control.
 """
 
 import os
@@ -20,7 +21,7 @@ def create_access_token(data: dict) -> dict:
     Create a JWT access token with expiration.
 
     Args:
-        data: Dictionary containing claims (e.g., {"sub": "admin@email.com"})
+        data: Dictionary containing claims (e.g., {"sub": "admin@email.com", "role": "admin"})
 
     Returns:
         Dictionary with access_token string and expires_in (seconds).

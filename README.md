@@ -338,28 +338,30 @@ npm run dev
 
 ---
 
-## 🔮 Future Improvements
+## 🚀 Features & Improvements Completed
 
-- [ ] Lead export to CSV/Excel
-- [ ] Email notifications on new lead
-- [ ] Multi-admin support with role-based access
-- [ ] Lead notes and activity timeline
-- [ ] Charts and graphs for analytics
-- [ ] Webhook integrations (Slack, Discord)
-- [ ] Rate limiting on public endpoints
-- [ ] Unit and integration tests
-- [ ] CI/CD pipeline with GitHub Actions
+- [x] Lead export to CSV/Excel
+- [x] Email notifications on new lead (SMTP)
+- [x] Multi-admin support with role-based access (Super Admin, Admin, Viewer)
+- [x] Lead notes and activity timeline
+- [x] Charts and graphs for analytics (Chart.js status, budget, timeline)
+- [x] Webhook integrations (Slack, Discord)
+- [x] Rate limiting on public endpoints (SlowAPI)
+- [x] File upload in lead contact form (GridFS storage, PDF/images/docs)
+- [x] Unit and integration tests (Pytest + TestClient)
+- [x] CI/CD pipeline with GitHub Actions
 
 ---
 
-## 👨‍💻 Author
+## 🏢 Organization
 
-**Sandeep Kumar**
+**GALLANTT ISPAT LIMITED**
 
-Built for the [Digital Heroes](https://digitalheroesco.com) Full Stack Development Internship Qualification Task.
+Developed by **Sandeep Kumar**
 
 ---
 
 ## 📄 License
 
-This project is built for educational and assessment purposes.
+This project is built for assessment and production lead management.
+

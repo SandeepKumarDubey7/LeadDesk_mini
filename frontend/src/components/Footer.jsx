@@ -1,5 +1,5 @@
 /**
- * Footer component with Digital Heroes attribution and social links.
+ * Footer component with GALLANTT ISPAT LIMITED attribution and social links.
  */
 
 function Footer() {
@@ -38,14 +38,9 @@ function Footer() {
               <li className="text-sm">📧 sandeepdk180@gmail.com</li>
               <li className="text-sm">📍 India</li>
               <li>
-                <a
-                  href="https://digitalheroesco.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-primary-light hover:text-primary transition-colors"
-                >
-                  🌐 digitalheroesco.com
-                </a>
+                <span className="text-sm text-primary-light">
+                  🏢 GALLANTT ISPAT LIMITED
+                </span>
               </li>
             </ul>
           </div>
@@ -58,14 +53,9 @@ function Footer() {
           </p>
           <p className="text-sm text-gray-500">
             Built for{' '}
-            <a
-              href="https://digitalheroesco.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary-light hover:text-primary font-medium transition-colors"
-            >
-              Digital Heroes Training Task
-            </a>
+            <span className="text-primary-light font-medium">
+              GALLANTT ISPAT LIMITED
+            </span>
           </p>
         </div>
       </div>

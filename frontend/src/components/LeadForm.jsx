@@ -1,10 +1,10 @@
 /**
  * Lead capture form with React Hook Form validation,
- * loading states, and toast notifications.
+ * file upload (drag-and-drop), loading states, and toast notifications.
  */
 
 import { useForm } from 'react-hook-form';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { submitLeadAPI } from '../services/api';
 
@@ -15,8 +15,24 @@ const BUDGET_OPTIONS = [
   { value: '₹1L+', label: '₹1L+' },
 ];
 
+const ALLOWED_TYPES = [
+  'application/pdf',
+  'image/png',
+  'image/jpeg',
+  'image/jpg',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+];
+
+const ALLOWED_EXTENSIONS = ['.pdf', '.png', '.jpg', '.jpeg', '.doc', '.docx'];
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
 function LeadForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [fileError, setFileError] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef(null);
 
   const {
     register,
@@ -32,14 +48,96 @@ function LeadForm() {
     },
   });
 
+  const validateFile = (file) => {
+    if (!file) return true;
+
+    const ext = '.' + file.name.split('.').pop().toLowerCase();
+    if (!ALLOWED_EXTENSIONS.includes(ext)) {
+      setFileError(`File type not allowed. Accepted: ${ALLOWED_EXTENSIONS.join(', ')}`);
+      return false;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      setFileError('File too large. Maximum size is 5MB.');
+      return false;
+    }
+
+    setFileError('');
+    return true;
+  };
+
+  const handleFileSelect = (file) => {
+    if (file && validateFile(file)) {
+      setSelectedFile(file);
+    }
+  };
+
+  const handleFileInputChange = (e) => {
+    const file = e.target.files[0];
+    handleFileSelect(file);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    handleFileSelect(file);
+  };
+
+  const removeFile = () => {
+    setSelectedFile(null);
+    setFileError('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
+  const getFileIcon = (filename) => {
+    const ext = filename.split('.').pop().toLowerCase();
+    switch (ext) {
+      case 'pdf': return '📄';
+      case 'png': case 'jpg': case 'jpeg': return '🖼️';
+      case 'doc': case 'docx': return '📝';
+      default: return '📎';
+    }
+  };
+
   const onSubmit = async (data) => {
     setIsSubmitting(true);
     try {
-      await submitLeadAPI(data);
+      // Build FormData for multipart upload
+      const formData = new FormData();
+      formData.append('name', data.name);
+      formData.append('email', data.email);
+      formData.append('budget', data.budget);
+      formData.append('message', data.message);
+
+      if (selectedFile) {
+        formData.append('attachment', selectedFile);
+      }
+
+      await submitLeadAPI(formData);
       toast.success('🎉 Thank you! We\'ll get back to you soon.', {
         duration: 5000,
       });
       reset();
+      removeFile();
     } catch (error) {
       const message = error.response?.data?.detail || 'Something went wrong. Please try again.';
       toast.error(message, { duration: 5000 });
@@ -148,6 +246,77 @@ function LeadForm() {
         />
         {errors.message && (
           <p className="mt-1 text-sm text-danger">{errors.message.message}</p>
+        )}
+      </div>
+
+      {/* File Upload */}
+      <div>
+        <label className="block text-sm font-medium text-text-primary dark:text-text-dark-primary mb-1.5">
+          Attachment <span className="text-text-secondary dark:text-text-dark-secondary font-normal">(optional)</span>
+        </label>
+
+        {!selectedFile ? (
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+            className={`w-full px-4 py-6 rounded-xl border-2 border-dashed cursor-pointer transition-all text-center ${
+              isDragging
+                ? 'border-primary bg-primary/5 dark:bg-primary/10'
+                : fileError
+                  ? 'border-danger bg-red-50 dark:bg-red-900/10'
+                  : 'border-border dark:border-border-dark bg-gray-50 dark:bg-gray-800/50 hover:border-primary/50 hover:bg-primary/5 dark:hover:bg-primary/5'
+            }`}
+          >
+            <div className="flex flex-col items-center gap-2">
+              <svg className={`w-8 h-8 ${isDragging ? 'text-primary' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              <p className="text-sm text-text-secondary dark:text-text-dark-secondary">
+                <span className="font-medium text-primary">Click to upload</span> or drag and drop
+              </p>
+              <p className="text-xs text-gray-400">
+                PDF, PNG, JPG, DOC, DOCX (max 5MB)
+              </p>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              onChange={handleFileInputChange}
+              accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+              className="hidden"
+            />
+          </div>
+        ) : (
+          <div className="w-full px-4 py-3 rounded-xl border border-border dark:border-border-dark bg-gray-50 dark:bg-gray-800/50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="text-2xl flex-shrink-0">{getFileIcon(selectedFile.name)}</span>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-text-primary dark:text-text-dark-primary truncate">
+                    {selectedFile.name}
+                  </p>
+                  <p className="text-xs text-text-secondary dark:text-text-dark-secondary">
+                    {formatFileSize(selectedFile.size)}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={removeFile}
+                className="flex-shrink-0 p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-gray-400 hover:text-danger transition-colors cursor-pointer"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {fileError && (
+          <p className="mt-1 text-sm text-danger">{fileError}</p>
         )}
       </div>
 

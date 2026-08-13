@@ -1,5 +1,5 @@
 /**
- * Lead management table with status dropdown, pagination, and view action.
+ * Lead management table with status dropdown, pagination, attachment indicators, and view action.
  */
 
 import { useState } from 'react';
@@ -10,11 +10,15 @@ import EmptyState from './EmptyState';
 
 const STATUS_OPTIONS = ['New', 'Contacted', 'Closed'];
 
-function LeadTable({ leads, loading, error, page, totalPages, total, onPageChange, onRefetch, searchQuery }) {
+function LeadTable({ leads, loading, error, page, totalPages, total, onPageChange, onRefetch, searchQuery, userRole }) {
   const [viewLead, setViewLead] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
 
   const handleStatusChange = async (leadId, newStatus) => {
+    if (userRole === 'viewer') {
+      toast.error('Viewer role cannot update lead status');
+      return;
+    }
     setUpdatingId(leadId);
     try {
       await updateLeadStatusAPI(leadId, newStatus);
@@ -33,7 +37,7 @@ function LeadTable({ leads, loading, error, page, totalPages, total, onPageChang
     Closed: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
   };
 
-  const truncate = (text, maxLen = 50) => {
+  const truncate = (text, maxLen = 45) => {
     if (!text) return '';
     return text.length > maxLen ? text.substring(0, maxLen) + '...' : text;
   };
@@ -63,25 +67,32 @@ function LeadTable({ leads, loading, error, page, totalPages, total, onPageChang
   return (
     <>
       {/* Desktop Table */}
-      <div className="bg-white dark:bg-surface-card-dark rounded-2xl border border-border dark:border-border-dark overflow-hidden">
+      <div className="bg-white dark:bg-surface-card-dark rounded-2xl border border-border dark:border-border-dark overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50 dark:bg-gray-800/50">
-                <th className="text-left text-xs font-semibold text-text-secondary dark:text-text-dark-secondary uppercase tracking-wider px-4 py-3">Name</th>
-                <th className="text-left text-xs font-semibold text-text-secondary dark:text-text-dark-secondary uppercase tracking-wider px-4 py-3">Email</th>
-                <th className="text-left text-xs font-semibold text-text-secondary dark:text-text-dark-secondary uppercase tracking-wider px-4 py-3">Budget</th>
-                <th className="text-left text-xs font-semibold text-text-secondary dark:text-text-dark-secondary uppercase tracking-wider px-4 py-3 hidden lg:table-cell">Message</th>
-                <th className="text-left text-xs font-semibold text-text-secondary dark:text-text-dark-secondary uppercase tracking-wider px-4 py-3">Status</th>
-                <th className="text-left text-xs font-semibold text-text-secondary dark:text-text-dark-secondary uppercase tracking-wider px-4 py-3 hidden md:table-cell">Date</th>
-                <th className="text-left text-xs font-semibold text-text-secondary dark:text-text-dark-secondary uppercase tracking-wider px-4 py-3">Action</th>
+                <th className="text-left text-xs font-semibold text-text-secondary dark:text-text-dark-secondary uppercase tracking-wider px-4 py-3.5">Name</th>
+                <th className="text-left text-xs font-semibold text-text-secondary dark:text-text-dark-secondary uppercase tracking-wider px-4 py-3.5">Email</th>
+                <th className="text-left text-xs font-semibold text-text-secondary dark:text-text-dark-secondary uppercase tracking-wider px-4 py-3.5">Budget</th>
+                <th className="text-left text-xs font-semibold text-text-secondary dark:text-text-dark-secondary uppercase tracking-wider px-4 py-3.5 hidden lg:table-cell">Message</th>
+                <th className="text-left text-xs font-semibold text-text-secondary dark:text-text-dark-secondary uppercase tracking-wider px-4 py-3.5">Status</th>
+                <th className="text-left text-xs font-semibold text-text-secondary dark:text-text-dark-secondary uppercase tracking-wider px-4 py-3.5 hidden md:table-cell">Date</th>
+                <th className="text-left text-xs font-semibold text-text-secondary dark:text-text-dark-secondary uppercase tracking-wider px-4 py-3.5">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border dark:divide-border-dark">
               {leads.map((lead) => (
-                <tr key={lead._id} className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+                <tr key={lead._id} className="hover:bg-gray-50/80 dark:hover:bg-gray-800/30 transition-colors">
                   <td className="px-4 py-3.5">
-                    <span className="text-sm font-medium text-text-primary dark:text-text-dark-primary">{lead.name}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-text-primary dark:text-text-dark-primary">{lead.name}</span>
+                      {lead.attachment_filename && (
+                        <span title={`Attached: ${lead.attachment_filename}`} className="text-sm cursor-help">
+                          📎
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-4 py-3.5">
                     <span className="text-sm text-text-secondary dark:text-text-dark-secondary">{lead.email}</span>
@@ -96,9 +107,10 @@ function LeadTable({ leads, loading, error, page, totalPages, total, onPageChang
                     <select
                       value={lead.status}
                       onChange={(e) => handleStatusChange(lead._id, e.target.value)}
-                      disabled={updatingId === lead._id}
+                      disabled={updatingId === lead._id || userRole === 'viewer'}
                       className={`text-xs font-medium px-2.5 py-1 rounded-full border cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50 appearance-none ${statusColors[lead.status] || ''}`}
                       style={{ backgroundImage: 'none' }}
+                      title={userRole === 'viewer' ? 'Viewers cannot change status' : 'Change status'}
                     >
                       {STATUS_OPTIONS.map((status) => (
                         <option 
@@ -117,7 +129,7 @@ function LeadTable({ leads, loading, error, page, totalPages, total, onPageChang
                   <td className="px-4 py-3.5">
                     <button
                       onClick={() => setViewLead(lead)}
-                      className="text-sm font-medium text-primary hover:text-primary-dark transition-colors cursor-pointer"
+                      className="text-sm font-medium text-primary hover:text-primary-dark transition-colors cursor-pointer inline-flex items-center gap-1"
                     >
                       View
                     </button>
@@ -147,7 +159,7 @@ function LeadTable({ leads, loading, error, page, totalPages, total, onPageChang
                 onClick={() => onPageChange(i + 1)}
                 className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
                   page === i + 1
-                    ? 'bg-primary text-white'
+                    ? 'bg-primary text-white shadow-sm'
                     : 'bg-gray-100 dark:bg-gray-800 text-text-primary dark:text-text-dark-primary hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
               >

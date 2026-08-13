@@ -1,6 +1,7 @@
 /**
  * Axios API client for LeadDesk Mini.
  * Configures base URL, JWT interceptor, and auto-logout on 401.
+ * Includes all API functions for leads, auth, analytics, export, notes, and admin.
  */
 
 import axios from 'axios';
@@ -53,8 +54,11 @@ export const loginAPI = async (email, password) => {
 };
 
 // ===== Lead APIs (Public) =====
-export const submitLeadAPI = async (leadData) => {
-  const response = await api.post('/api/leads', leadData);
+export const submitLeadAPI = async (formData) => {
+  // formData is a FormData object (multipart/form-data for file upload)
+  const response = await api.post('/api/leads', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
   return response.data;
 };
 
@@ -83,9 +87,91 @@ export const updateLeadStatusAPI = async (leadId, status) => {
   return response.data;
 };
 
+// ===== Notes APIs (Protected) =====
+export const addNoteAPI = async (leadId, text) => {
+  const response = await api.post(`/api/leads/${leadId}/notes`, { text });
+  return response.data;
+};
+
+export const getNotesAPI = async (leadId) => {
+  const response = await api.get(`/api/leads/${leadId}/notes`);
+  return response.data;
+};
+
+export const getTimelineAPI = async (leadId) => {
+  const response = await api.get(`/api/leads/${leadId}/timeline`);
+  return response.data;
+};
+
+// ===== Attachment Download (Protected) =====
+export const downloadAttachmentAPI = async (leadId) => {
+  const response = await api.get(`/api/leads/${leadId}/attachment`, {
+    responseType: 'blob',
+  });
+  return response;
+};
+
 // ===== Dashboard APIs (Protected) =====
 export const getDashboardStatsAPI = async () => {
   const response = await api.get('/api/dashboard/stats');
+  return response.data;
+};
+
+// ===== Analytics APIs (Protected) =====
+export const getStatusDistributionAPI = async () => {
+  const response = await api.get('/api/analytics/status-distribution');
+  return response.data;
+};
+
+export const getBudgetDistributionAPI = async () => {
+  const response = await api.get('/api/analytics/budget-distribution');
+  return response.data;
+};
+
+export const getLeadsOverTimeAPI = async (days = 30) => {
+  const response = await api.get('/api/analytics/leads-over-time', {
+    params: { days },
+  });
+  return response.data;
+};
+
+// ===== Export APIs (Protected) =====
+export const exportLeadsAPI = async (format = 'csv', filters = {}) => {
+  const response = await api.get('/api/leads/export', {
+    params: { format, ...filters },
+    responseType: 'blob',
+  });
+
+  // Trigger file download
+  const blob = new Blob([response.data]);
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `leads_export.${format}`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+};
+
+// ===== Admin User Management APIs (Protected — super_admin) =====
+export const createAdminUserAPI = async (email, password, role) => {
+  const response = await api.post('/api/admin/users', { email, password, role });
+  return response.data;
+};
+
+export const getAdminUsersAPI = async () => {
+  const response = await api.get('/api/admin/users');
+  return response.data;
+};
+
+export const updateUserRoleAPI = async (userId, role) => {
+  const response = await api.patch(`/api/admin/users/${userId}/role`, { role });
+  return response.data;
+};
+
+export const deleteAdminUserAPI = async (userId) => {
+  const response = await api.delete(`/api/admin/users/${userId}`);
   return response.data;
 };
 

@@ -21,7 +21,11 @@ export function AuthProvider({ children }) {
 
     if (storedToken && storedUser) {
       setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch {
+        setUser(null);
+      }
     }
     setLoading(false);
   }, []);
@@ -29,7 +33,7 @@ export function AuthProvider({ children }) {
   const login = useCallback(async (email, password) => {
     const data = await loginAPI(email, password);
 
-    const userData = { email: data.email };
+    const userData = { email: data.email, role: data.role || 'admin' };
 
     localStorage.setItem('leaddesk_token', data.access_token);
     localStorage.setItem('leaddesk_user', JSON.stringify(userData));
@@ -56,6 +60,7 @@ export function AuthProvider({ children }) {
     token,
     loading,
     isAuthenticated,
+    role: user?.role || 'admin',
     login,
     logout,
   };
