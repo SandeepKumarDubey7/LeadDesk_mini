@@ -1,19 +1,22 @@
 # 🚀 LeadDesk Mini
 
-A production-ready **Full Stack Lead Capture & Admin Dashboard** application built for the **Digital Heroes Internship Qualification Task**.
+A production-ready, full-stack **Lead Capture & Sales Management Platform** built for **GALLANTT ISPAT LIMITED**.
 
-> Built with React 19, FastAPI, MongoDB Atlas, JWT Authentication, and modern UI design.
+> Built with **React 19**, **FastAPI**, **MongoDB Atlas (GridFS)**, **JWT Role-Based Auth**, **Chart.js Analytics**, **Slack/Discord Webhooks**, and **GitHub Actions CI/CD**.
 
 ---
 
 ## 📋 Project Overview
 
-LeadDesk Mini is a complete lead management platform with two major modules:
+LeadDesk Mini is a comprehensive enterprise lead management application:
 
 | Module | Description |
 |---|---|
-| **Task A — Lead Capture** | Public landing page with a lead capture form. Leads are stored in MongoDB with validation and duplicate handling. |
-| **Task B — Authentication & Admin** | Secure admin dashboard with JWT auth, bcrypt password hashing, lead management table, search, filters, and statistics. |
+| **Public Lead Capture** | Responsive landing page with contact form, budget tier selection, and **file attachments** (PDF, PNG, JPG, DOC, DOCX up to 5MB stored in MongoDB GridFS). |
+| **Admin Dashboard** | Protected management portal featuring **live analytics charts**, multi-filter search, status updates, **CSV/Excel export**, **lead notes**, and **activity audit timeline**. |
+| **Role-Based Access Control (RBAC)** | Support for `super_admin`, `admin`, and `viewer` roles with team access management. |
+| **Automated Notifications** | Real-time **SMTP HTML email** alerts and **Slack / Discord webhooks** on lead capture. |
+| **Security & Reliability** | IP-based rate limiting with **SlowAPI**, bcrypt password hashing, JWT expiry, and **automated CI/CD test pipeline**. |
 
 ---
 
@@ -21,134 +24,150 @@ LeadDesk Mini is a complete lead management platform with two major modules:
 
 | Layer | Technologies |
 |---|---|
-| **Frontend** | React 19, Vite, Tailwind CSS v4, React Router, Axios, React Hook Form, React Hot Toast |
-| **Backend** | FastAPI, Pydantic v2, PyMongo, python-jose (JWT), bcrypt, python-dotenv |
-| **Database** | MongoDB Atlas |
-| **Deployment** | Frontend → Vercel, Backend → Render |
+| **Frontend** | React 19, Vite, Tailwind CSS v4, Chart.js, react-chartjs-2, React Router v7, Axios, React Hook Form, React Hot Toast |
+| **Backend** | FastAPI 0.115, Pydantic v2, PyMongo, GridFS, openpyxl, SlowAPI, python-jose (JWT), passlib/bcrypt, httpx |
+| **Database** | MongoDB Atlas (Documents + GridFS file storage) |
+| **Testing** | Pytest 8.3, FastAPI TestClient, mongomock |
+| **CI/CD & DevOps** | GitHub Actions (`.github/workflows/ci.yml`), Render (Backend), Vercel (Frontend) |
 
 ---
 
-## 📁 Folder Structure
+## 📁 Project Architecture
 
 ```
-digitalheroesfinal/
+LeadDesk_mini/
+├── .github/
+│   └── workflows/
+│       └── ci.yml                     # GitHub Actions CI/CD pipeline
 ├── backend/
 │   ├── app/
 │   │   ├── auth/
-│   │   │   ├── jwt_handler.py         # JWT token create/verify
-│   │   │   └── password.py            # bcrypt hash/verify
+│   │   │   ├── jwt_handler.py         # JWT token creation and verification
+│   │   │   └── password.py            # bcrypt password hashing utilities
 │   │   ├── database/
-│   │   │   └── connection.py          # MongoDB Atlas connection
+│   │   │   └── connection.py          # PyMongo client & GridFS instance
 │   │   ├── middleware/
-│   │   │   └── auth_middleware.py     # JWT auth dependency
+│   │   │   ├── auth_middleware.py     # JWT & role-based access dependency
+│   │   │   └── rate_limiter.py        # SlowAPI rate limiter configuration
 │   │   ├── models/
-│   │   │   ├── lead.py                # Lead CRUD operations
-│   │   │   └── user.py                # User lookup/creation
+│   │   │   ├── analytics.py           # MongoDB aggregation pipelines for charts
+│   │   │   ├── lead.py                # Lead CRUD, notes, timeline & exports
+│   │   │   └── user.py                # Admin user & role management helpers
 │   │   ├── routes/
+│   │   │   ├── admin.py               # Super admin user management endpoints
+│   │   │   ├── analytics.py           # Chart & analytics data endpoints
 │   │   │   ├── auth.py                # POST /api/auth/login
-│   │   │   ├── leads.py               # Lead CRUD + search
-│   │   │   └── dashboard.py           # GET /api/dashboard/stats
+│   │   │   ├── dashboard.py           # Aggregated pipeline stats
+│   │   │   ├── export.py              # GET /api/leads/export (CSV & XLSX)
+│   │   │   └── leads.py               # Lead submission, attachment, search, notes
 │   │   ├── schemas/
-│   │   │   ├── lead.py                # Pydantic lead models
-│   │   │   └── user.py                # Pydantic auth models
+│   │   │   ├── lead.py                # Pydantic schemas for leads, notes & timeline
+│   │   │   └── user.py                # Pydantic schemas for auth & user roles
 │   │   ├── utils/
-│   │   │   └── seed_admin.py          # Admin seeder script
-│   │   └── main.py                    # FastAPI entry point
+│   │   │   ├── email_service.py       # SMTP HTML email notification service
+│   │   │   ├── seed_admin.py          # Super admin user seeder
+│   │   │   └── webhooks.py            # Slack & Discord notification dispatcher
+│   │   └── main.py                    # FastAPI entrypoint, CORS & route registry
+│   ├── tests/
+│   │   ├── conftest.py                # Test fixtures & mongomock setup
+│   │   ├── test_admin.py              # Super admin & RBAC tests
+│   │   ├── test_auth.py               # Login & token validation tests
+│   │   ├── test_dashboard.py          # Stats & analytics endpoint tests
+│   │   ├── test_export.py             # CSV and Excel export tests
+│   │   └── test_leads.py              # Lead CRUD, attachments, notes & timeline tests
 │   ├── requirements.txt
-│   ├── .env.example
-│   └── render.yaml
+│   └── .env.example
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── AnimatedCounter.jsx
-│   │   │   ├── EmptyState.jsx
-│   │   │   ├── ErrorBoundary.jsx
-│   │   │   ├── Footer.jsx
-│   │   │   ├── LeadForm.jsx
-│   │   │   ├── LeadTable.jsx
-│   │   │   ├── LeadViewModal.jsx
-│   │   │   ├── LoadingSkeleton.jsx
-│   │   │   ├── Navbar.jsx
-│   │   │   ├── ProtectedRoute.jsx
-│   │   │   ├── SearchBar.jsx
-│   │   │   └── StatCard.jsx
+│   │   │   ├── AnalyticsCharts.jsx    # Chart.js status, budget & trend graphs
+│   │   │   ├── AnimatedCounter.jsx    # Animated metrics counter
+│   │   │   ├── EmptyState.jsx         # Empty state & no-results indicator
+│   │   │   ├── ErrorBoundary.jsx      # React error boundary
+│   │   │   ├── Footer.jsx             # Company branded footer
+│   │   │   ├── LeadForm.jsx           # Form with drag-and-drop file upload
+│   │   │   ├── LeadTable.jsx          # Lead management table with attachment clip
+│   │   │   ├── LeadViewModal.jsx      # Tabbed modal: Details | Notes | Timeline
+│   │   │   ├── LoadingSkeleton.jsx    # Shimmer loading skeleton
+│   │   │   ├── Navbar.jsx             # Responsive navbar
+│   │   │   ├── ProtectedRoute.jsx     # Auth route guard
+│   │   │   ├── SearchBar.jsx          # Search bar component
+│   │   │   ├── StatCard.jsx           # Metric stat cards
+│   │   │   └── UserManagementModal.jsx# Super Admin team access manager
 │   │   ├── context/
-│   │   │   └── AuthContext.jsx
+│   │   │   └── AuthContext.jsx        # Auth state & role context
 │   │   ├── hooks/
-│   │   │   └── useLeads.js
+│   │   │   └── useLeads.js            # Custom hook for lead pagination & filters
 │   │   ├── pages/
-│   │   │   ├── AdminDashboard.jsx
-│   │   │   ├── LandingPage.jsx
-│   │   │   ├── LoginPage.jsx
-│   │   │   └── NotFoundPage.jsx
+│   │   │   ├── AdminDashboard.jsx     # Full-featured admin dashboard
+│   │   │   ├── LandingPage.jsx        # Marketing SaaS landing page
+│   │   │   ├── LoginPage.jsx          # Admin authentication page
+│   │   │   └── NotFoundPage.jsx       # 404 page
 │   │   ├── services/
-│   │   │   └── api.js
+│   │   │   └── api.js                 # Axios client with JWT interceptor
 │   │   ├── App.jsx
 │   │   ├── main.jsx
 │   │   └── index.css
-│   ├── vercel.json
-│   ├── .env.example
-│   └── package.json
-├── README.md
-└── LOOM_SCRIPT.md
+│   ├── package.json
+│   └── vite.config.js
+└── README.md
 ```
 
 ---
 
-## ⚡ Installation & Setup
+## ⚡ Installation & Quick Start
 
 ### Prerequisites
-
 - **Node.js** >= 18
 - **Python** >= 3.10
-- **MongoDB Atlas** account (free tier works)
+- **MongoDB Atlas** connection string
 
 ### 1. Clone the Repository
-
 ```bash
-git clone https://github.com/your-username/leaddesk-mini.git
-cd leaddesk-mini
+git clone https://github.com/SandeepKumarDubey7/LeadDesk_mini.git
+cd LeadDesk_mini
 ```
 
 ### 2. Backend Setup
-
 ```bash
 cd backend
 
-# Create virtual environment
+# Create & activate virtual environment
 python -m venv venv
-venv\Scripts\activate    # Windows
-# source venv/bin/activate  # macOS/Linux
+venv\Scripts\activate          # Windows
+# source venv/bin/activate     # macOS/Linux
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Create .env file
-copy .env.example .env
-# Edit .env with your MongoDB URI and JWT secret
+# Configure environment variables
+copy .env.example .env         # Windows
+# cp .env.example .env         # macOS/Linux
 
-# Seed admin user
+# Seed default Super Admin user
 python -m app.utils.seed_admin
 
-# Start the server
+# Start backend server
 python -m uvicorn app.main:app --reload --port 8000
 ```
+- Interactive API Docs: `http://localhost:8000/docs`
+- Alternative Docs: `http://localhost:8000/redoc`
 
 ### 3. Frontend Setup
-
 ```bash
 cd frontend
 
 # Install dependencies
 npm install
 
-# Create .env file
-copy .env.example .env
-# Set VITE_API_URL=http://localhost:8000
+# Configure environment
+copy .env.example .env         # Windows
+# cp .env.example .env         # macOS/Linux
 
-# Start dev server
+# Start Vite development server
 npm run dev
 ```
+- Web Application: `http://localhost:5173`
 
 ---
 
@@ -159,9 +178,16 @@ npm run dev
 | Variable | Description | Example |
 |---|---|---|
 | `MONGODB_URI` | MongoDB Atlas connection string | `mongodb+srv://...` |
-| `JWT_SECRET` | Secret key for JWT signing | `your_super_secret_key` |
-| `JWT_EXPIRY_MINUTES` | Token expiry duration | `60` |
+| `JWT_SECRET` | Secret key for signing JWT tokens | `your_secret_key` |
+| `JWT_EXPIRY_MINUTES` | Token expiry duration (minutes) | `60` |
 | `CORS_ORIGINS` | Allowed frontend origins (comma-separated) | `http://localhost:5173` |
+| `SMTP_HOST` | *(Optional)* SMTP mail server host | `smtp.gmail.com` |
+| `SMTP_PORT` | *(Optional)* SMTP port | `587` |
+| `SMTP_USER` | *(Optional)* SMTP sender email | `notifications@example.com` |
+| `SMTP_PASSWORD` | *(Optional)* SMTP app password | `xxxx-xxxx-xxxx-xxxx` |
+| `NOTIFY_EMAIL` | *(Optional)* Recipient email for lead alerts | `admin@example.com` |
+| `SLACK_WEBHOOK_URL` | *(Optional)* Slack incoming webhook URL | `https://hooks.slack.com/...` |
+| `DISCORD_WEBHOOK_URL` | *(Optional)* Discord incoming webhook URL | `https://discord.com/api/webhooks/...` |
 
 ### Frontend (`frontend/.env`)
 
@@ -171,185 +197,86 @@ npm run dev
 
 ---
 
-## 🗄️ MongoDB Atlas Setup
+## 👥 Roles & Access Permissions
 
-1. Go to [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
-2. Create a free cluster
-3. Create a database user with read/write access
-4. Whitelist your IP (or use `0.0.0.0/0` for development)
-5. Get your connection string and add it to `backend/.env`
-6. The database name `LeadDesk` and collections `leads`, `users` will be created automatically
+| Feature / Action | Super Admin | Admin | Viewer |
+|---|:---:|:---:|:---:|
+| View Leads & Search | ✅ | ✅ | ✅ |
+| View Lead Details & Attachments | ✅ | ✅ | ✅ |
+| View Activity Timeline & Notes | ✅ | ✅ | ✅ |
+| Add Notes to Leads | ✅ | ✅ | ❌ |
+| Update Lead Status (New/Contacted/Closed) | ✅ | ✅ | ❌ |
+| Export to CSV / Excel | ✅ | ✅ | ✅ |
+| View Analytics Charts | ✅ | ✅ | ✅ |
+| Manage Team Users & Roles | ✅ | ❌ | ❌ |
 
----
-
-## 🧪 Test Credentials
-
-| Field | Value |
-|---|---|
-| **Email** | `admin@leaddesk.com` |
-| **Password** | `Admin@123` |
-
-> Run `python -m app.utils.seed_admin` from the `backend/` directory to create this admin user.
+### Default Credentials (Seeded)
+- **Email**: `admin@leaddesk.com`
+- **Password**: `Admin@123`
+- **Role**: `super_admin`
 
 ---
 
-## 📡 API Documentation
+## 📡 API Endpoint Reference
 
-### Authentication
+### 1. Authentication
+- `POST /api/auth/login` — Authenticate and receive JWT access token.
 
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| `POST` | `/api/auth/login` | ❌ | Login with email/password, returns JWT |
+### 2. Public Leads & File Upload
+- `POST /api/leads` — Submit new lead with optional file attachment (`multipart/form-data`). *(Rate limit: 5/min)*
+- `GET /api/leads/public/stats` — Public aggregate counts. *(Rate limit: 30/min)*
 
-**Request:**
-```json
-{
-  "email": "admin@leaddesk.com",
-  "password": "Admin@123"
-}
+### 3. Lead Management (Protected)
+- `GET /api/leads?page=1&limit=10` — Paginated list of all leads.
+- `GET /api/leads/search?q=...&status=...&budget=...` — Multi-filter search.
+- `PATCH /api/leads/{id}/status` — Update status (`New`, `Contacted`, `Closed`).
+- `GET /api/leads/{id}/attachment` — Download lead attached file.
+
+### 4. Notes & Activity Timeline (Protected)
+- `POST /api/leads/{id}/notes` — Add follow-up note.
+- `GET /api/leads/{id}/notes` — List notes for a lead.
+- `GET /api/leads/{id}/timeline` — View chronological activity timeline.
+
+### 5. Export (Protected)
+- `GET /api/leads/export?format=csv` — Export filtered leads as CSV.
+- `GET /api/leads/export?format=xlsx` — Export filtered leads as formatted Excel spreadsheet.
+
+### 6. Analytics Charts (Protected)
+- `GET /api/analytics/status-distribution` — Grouped lead counts by status.
+- `GET /api/analytics/budget-distribution` — Grouped lead counts by budget range.
+- `GET /api/analytics/leads-over-time?days=30` — Daily lead volume trend.
+
+### 7. Team & Role Management (Super Admin)
+- `POST /api/admin/users` — Create new admin user (`super_admin`, `admin`, `viewer`).
+- `GET /api/admin/users` — List all registered admin accounts.
+- `PATCH /api/admin/users/{id}/role` — Change user role.
+- `DELETE /api/admin/users/{id}` — Delete user account.
+
+---
+
+## 🧪 Testing
+
+The backend includes a comprehensive test suite using **Pytest** and in-memory **mongomock** (no live database required to run tests):
+
+```bash
+cd backend
+python -m pytest tests/ -v
 ```
 
-**Response:**
-```json
-{
-  "access_token": "eyJhbGci...",
-  "token_type": "bearer",
-  "expires_in": 3600,
-  "email": "admin@leaddesk.com"
-}
-```
-
-### Leads
-
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| `POST` | `/api/leads` | ❌ | Submit a new lead (public) |
-| `GET` | `/api/leads?page=1&limit=10` | ✅ | List leads (paginated) |
-| `GET` | `/api/leads/search?q=name&status=New&budget=₹25k - ₹50k` | ✅ | Search leads |
-| `PATCH` | `/api/leads/{id}/status` | ✅ | Update lead status |
-
-### Dashboard
-
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| `GET` | `/api/dashboard/stats` | ✅ | Get lead statistics |
-
-**Response:**
-```json
-{
-  "total": 25,
-  "new": 10,
-  "contacted": 8,
-  "closed": 7
-}
-```
+### Test Suite Summary
+- `test_auth.py` — Login flows, invalid credentials, token verification.
+- `test_leads.py` — Form submissions, file uploads, duplicate email conflict handling, pagination, search, status RBAC, notes, timeline.
+- `test_dashboard.py` — Public metrics, protected dashboard stats, analytics chart aggregations.
+- `test_export.py` — CSV and Excel export downloads.
+- `test_admin.py` — Super Admin user management and role restriction enforcement.
 
 ---
 
-## 🔒 Authentication Flow
+## 🚀 CI/CD Pipeline
 
-```
-┌─────────┐     POST /api/auth/login     ┌──────────┐
-│  Admin   │ ──────────────────────────→  │  FastAPI  │
-│  Login   │  { email, password }         │  Backend  │
-│  Page    │ ←────────────────────────── │           │
-│          │  { access_token, ...}        │  Verify   │
-└─────────┘                               │  bcrypt   │
-     │                                    └──────────┘
-     │  Store token in localStorage
-     │
-     ▼
-┌─────────┐     GET /api/leads            ┌──────────┐
-│  Admin   │ ──────────────────────────→  │  FastAPI  │
-│  Dash    │  Authorization: Bearer JWT   │  Verify   │
-│  board   │ ←────────────────────────── │  JWT      │
-│          │  { leads: [...] }            └──────────┘
-└─────────┘
-     │
-     │  On 401 → Auto logout → Redirect to /login
-```
-
----
-
-## 🚀 Deployment
-
-### Frontend → Vercel
-
-1. Push code to GitHub
-2. Go to [vercel.com](https://vercel.com) → Import project
-3. Set root directory to `frontend`
-4. Add environment variable: `VITE_API_URL=https://your-backend.onrender.com`
-5. Deploy
-
-### Backend → Render
-
-1. Push code to GitHub
-2. Go to [render.com](https://render.com) → New Web Service
-3. Set root directory to `backend`
-4. Set build command: `pip install -r requirements.txt`
-5. Set start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-6. Add environment variables: `MONGODB_URI`, `JWT_SECRET`, `CORS_ORIGINS`
-7. Deploy
-
-> Remember to update `CORS_ORIGINS` on Render to include your Vercel frontend URL.
-
----
-
-## 📸 Screenshots
-
-> _Screenshots can be added after deployment._
-
-| Page | Description |
-|---|---|
-| Landing Page | Modern SaaS hero with animated counters |
-| Lead Form | Form with validation and budget dropdown |
-| Login Page | Admin authentication with test credentials |
-| Admin Dashboard | Stats cards, search, filters, lead table |
-| Lead View Modal | Full lead details in a modal |
-| Dark Mode | Complete dark mode support |
-| Mobile View | Fully responsive on all devices |
-
----
-
-## ✨ Key Features
-
-- ✅ Modern SaaS landing page with gradient hero
-- ✅ Animated counters (social proof)
-- ✅ Lead capture form with React Hook Form validation
-- ✅ Budget range dropdown
-- ✅ Duplicate email detection
-- ✅ JWT authentication with bcrypt
-- ✅ Auto-logout on token expiry (401)
-- ✅ Protected admin routes
-- ✅ Dashboard with real-time statistics
-- ✅ Lead table with status dropdown
-- ✅ Search by name/email
-- ✅ Filter by status and budget
-- ✅ Pagination (10 per page)
-- ✅ View lead modal with full message
-- ✅ Skeleton loading states
-- ✅ Empty state & no results UI
-- ✅ Toast notifications
-- ✅ Dark mode toggle
-- ✅ Responsive (Mobile/Tablet/Desktop)
-- ✅ Custom 404 page
-- ✅ Error boundary
-- ✅ SEO meta tags
-
----
-
-## 🚀 Features & Improvements Completed
-
-- [x] Lead export to CSV/Excel
-- [x] Email notifications on new lead (SMTP)
-- [x] Multi-admin support with role-based access (Super Admin, Admin, Viewer)
-- [x] Lead notes and activity timeline
-- [x] Charts and graphs for analytics (Chart.js status, budget, timeline)
-- [x] Webhook integrations (Slack, Discord)
-- [x] Rate limiting on public endpoints (SlowAPI)
-- [x] File upload in lead contact form (GridFS storage, PDF/images/docs)
-- [x] Unit and integration tests (Pytest + TestClient)
-- [x] CI/CD pipeline with GitHub Actions
+The project includes an automated GitHub Actions pipeline in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) that executes on every push and pull request:
+1. **Backend Tests**: Sets up Python 3.11, installs dependencies, and runs `pytest tests/ -v`.
+2. **Frontend Build Check**: Sets up Node.js 20, installs packages, and validates production bundle compilation with `npm run build`.
 
 ---
 
@@ -363,5 +290,4 @@ Developed by **Sandeep Kumar**
 
 ## 📄 License
 
-This project is built for assessment and production lead management.
-
+This project is built for assessment and enterprise lead management.
