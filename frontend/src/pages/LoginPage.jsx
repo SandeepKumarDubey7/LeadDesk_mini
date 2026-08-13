@@ -149,9 +149,9 @@ function LoginPage() {
 
         <p className="text-center text-xs text-text-secondary dark:text-text-dark-secondary mt-6">
           Built for{' '}
-          <span className="text-primary font-medium">
+          <a href="https://gallantt.com/about-us" target="_blank" rel="noopener noreferrer" className="text-primary font-medium hover:underline">
             GALLANTT ISPAT LIMITED
-          </span>
+          </a>
         </p>
       </div>
     </div>

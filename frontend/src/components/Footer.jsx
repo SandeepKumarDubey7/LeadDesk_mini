@@ -38,9 +38,9 @@ function Footer() {
               <li className="text-sm">📧 sandeepdk180@gmail.com</li>
               <li className="text-sm">📍 India</li>
               <li>
-                <span className="text-sm text-primary-light">
+                <a href="https://gallantt.com/about-us" target="_blank" rel="noopener noreferrer" className="text-sm text-primary-light hover:underline">
                   🏢 GALLANTT ISPAT LIMITED
-                </span>
+                </a>
               </li>
             </ul>
           </div>
@@ -53,9 +53,9 @@ function Footer() {
           </p>
           <p className="text-sm text-gray-500">
             Built for{' '}
-            <span className="text-primary-light font-medium">
+            <a href="https://gallantt.com/about-us" target="_blank" rel="noopener noreferrer" className="text-primary-light font-medium hover:underline">
               GALLANTT ISPAT LIMITED
-            </span>
+            </a>
           </p>
         </div>
       </div>
